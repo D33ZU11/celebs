@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>💕 Random Image Swipe Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f9eef7 0%, #f7e3ea 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+            padding: 16px;
+        }
+
+        .game-container {
+            max-width: 500px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(4px);
+            border-radius: 56px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.05);
+            padding: 20px 16px 30px;
+            transition: all 0.2s ease;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.9rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #c44569, #e66767);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            margin-bottom: 8px;
+        }
+
+        .sub {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #b34180;
+            opacity: 0.8;
+            margin-bottom: 24px;
+            border-bottom: 1px dashed #ffb7c5;
+            display: inline-block;
+            width: auto;
+            margin-left: auto;
+            margin-right: auto;
+            padding-bottom: 6px;
+        }
+
+        .card-area {
+            background: #fffef7;
+            border-radius: 48px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        .question-card {
+            padding: 32px 24px 40px;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: #2d2f36;
+            margin: 12px 0 20px;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .image-placeholder {
+            width: 100%;
+            height: 280px;
+            background: #faf0f3;
+            border-radius: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 16px 0;
+            overflow: hidden;
+            box-shadow: inset 0 1px 4px #0001, 0 6px 12px -8px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .image-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 28px;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 36px;
+            font-size: 1.2rem;
+            color: #c44569;
+        }
+
+        .swipe-hint {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 8px 16px 16px;
+            gap: 12px;
+        }
+
+        .swipe-btn {
+            flex: 1;
+            background: white;
+            border: none;
+            border-radius: 80px;
+            padding: 14px 6px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .swipe-left {
+            color: #e66767;
+            border: 1.5px solid #ffb8b8;
+            background: #fff5f5;
+        }
+
+        .swipe-right {
+            color: #28a47e;
+            border: 1.5px solid #b0e0c6;
+            background: #f0fff4;
+        }
+
+        .swipe-left:active { background: #ffe0e0; transform: scale(0.97);}
+        .swipe-right:active { background: #dcfce8; transform: scale(0.97);}
+
+        .progress {
+            text-align: center;
+            font-weight: 500;
+            background: #ffeef4;
+            width: fit-content;
+            margin: 12px auto 0;
+            padding: 6px 18px;
+            border-radius: 60px;
+            font-size: 0.85rem;
+            color: #b34e71;
+        }
+
+        .result-panel {
+            background: white;
+            border-radius: 44px;
+            padding: 20px;
+            margin-top: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .result-title {
+            font-weight: 700;
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: #bc4e6c;
+        }
+
+        .answer-list {
+            background: #fef6f9;
+            border-radius: 32px;
+            padding: 12px 18px;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        .answer-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ffd9e4;
+            padding: 10px 0;
+            font-size: 1rem;
+        }
+
+        .badge-yes {
+            background: #c8f0e1;
+            color: #1e6f50;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-weight: 600;
+        }
+
+        .badge-no {
+            background: #ffe0e0;
+            color: #bc4e6c;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-weight: 600;
+        }
+
+        .share-link-area {
+            margin-top: 18px;
+            background: #f1f3f7;
+            border-radius: 60px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 6px 6px 20px;
+        }
+
+        .share-link-area input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            font-size: 0.8rem;
+            font-family: monospace;
+            padding: 10px 0;
+            outline: none;
+            color: #2d2f36;
+        }
+
+        .copy-btn {
+            background: #c44569;
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .copy-btn:active {
+            background: #a13352;
+            transform: scale(0.96);
+        }
+
+        .reset-btn {
+            background: none;
+            border: 1px solid #d4a5b7;
+            padding: 8px 20px;
+            border-radius: 60px;
+            margin-top: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #8b4b62;
+            width: 100%;
+        }
+
+        .finish-message {
+            text-align: center;
+            background: #d9f0e6;
+            border-radius: 48px;
+            padding: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .status {
+            text-align: center;
+            background: #ffeef4;
+            border-radius: 32px;
+            padding: 16px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            color: #b34180;
+        }
+
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 20px;
+            color: #aa7a8c;
+        }
+
+        @media (max-width: 480px) {
+            .question-text { font-size: 1.5rem; }
+            .image-placeholder { height: 220px; }
+            .swipe-btn { padding: 10px 6px; font-size: 1rem;}
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="app">
+    <h1>✨ swipe & choose ✨</h1>
+    <div style="text-align: center"><span class="sub">for you, my love 💌</span></div>
+
+    <div id="loadingView" class="status">
+        📂 Loading your images from Google Drive...<br>
+        <small>This may take a moment</small>
+    </div>
+
+    <div id="gameView" style="display: none;">
+        <div class="card-area">
+            <div class="question-card">
+                <div class="image-placeholder" id="questionImage">
+                    <div class="loading-overlay">❤️</div>
+                </div>
+                <div class="question-text" id="questionText">Do you like this?</div>
+            </div>
+        </div>
+        <div class="swipe-hint">
+            <button class="swipe-btn swipe-left" id="swipeLeftBtn">👈  NO  👈</button>
+            <button class="swipe-btn swipe-right" id="swipeRightBtn">👉  YES  👉</button>
+        </div>
+        <div class="progress" id="progressIndicator">image 0 / 0</div>
+    </div>
+
+    <div id="resultsView" style="display: none;">
+        <div class="result-panel">
+            <div class="result-title">💝 your choices 💝</div>
+            <div id="answersSummary" class="answer-list"></div>
+            <div class="share-link-area">
+                <input type="text" id="shareLinkInput" readonly placeholder="share link will appear here">
+                <button class="copy-btn" id="copyLinkBtn">📋 Copy</button>
+            </div>
+            <button class="reset-btn" id="resetGameBtn">⟳ play again</button>
+            <button class="reset-btn" id="newGameBtn" style="margin-top: 8px;">🎲 new random set</button>
+            <p style="font-size: 0.7rem; margin-top: 12px; text-align:center">✨ send this link to your partner ✨</p>
+        </div>
+    </div>
+    <footer>❤️ swipe left = NO | swipe right = YES</footer>
+</div>
+
+<script>
+    // ============================================================
+    // YOUR GOOGLE DRIVE FOLDER ID
+    // ============================================================
+    const FOLDER_ID = "1PrVNcN32W_Tq1uSf2AU4lVUyXZMtQ3Ji";
+    
+    let allImageUrls = [];      // Store all image URLs from subfolders
+    let currentQuestions = [];   // Randomly selected images for this game
+    let currentIndex = 0;
+    let answers = [];
+    let gameCompleted = false;
+    
+    // DOM Elements
+    const loadingView = document.getElementById('loadingView');
+    const gameViewDiv = document.getElementById('gameView');
+    const resultsViewDiv = document.getElementById('resultsView');
+    const questionTextEl = document.getElementById('questionText');
+    const questionImageEl = document.getElementById('questionImage');
+    const progressIndicator = document.getElementById('progressIndicator');
+    const swipeLeftBtn = document.getElementById('swipeLeftBtn');
+    const swipeRightBtn = document.getElementById('swipeRightBtn');
+    const answersSummaryDiv = document.getElementById('answersSummary');
+    const shareLinkInput = document.getElementById('shareLinkInput');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const resetGameBtn = document.getElementById('resetGameBtn');
+    const newGameBtn = document.getElementById('newGameBtn');
+    
+    // Helper: Get direct image URL from Google Drive file ID
+    function getDirectImageUrl(fileId) {
+        return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    }
+    
+    // Function to extract folder ID from Google Drive URL
+    function extractFolderId(url) {
+        const match = url.match(/[-\w]{25,}/);
+        return match ? match[0] : null;
+    }
+    
+    // Since we can't directly list folder contents via JavaScript without API,
+    // we'll use a known working method: manually list your subfolder names
+    // and then construct image URLs from known patterns
+    
+    // Based on your folder listing, here are your subfolder names
+    const subfolders = [
+        "911", "Alex jones", "Alex Scott", "Alice roberts", "Amanda holden",
+        "Andrea McLean", "Angelica bell", "Anita rani", "Anna kendrick",
+        "Ashley Jensen", "Attomic kitten", "Becky hill", "Big bang theory",
+        "Cariad lloyd", "Carol vorderman", "Caroline flack", "Charlotte church",
+        "Cherry healy", "Christine bleakley", "Clair buckley", "Claire sweeney",
+        "Coronation street", "Davina mccall", "Eastenders", "Ellie Pitt",
+        "Emma willis", "Emmerdale", "Fbi", "Fern brady", "Frankie bridge",
+        "Gemma Atkinson", "Girls aloud", "Gladiators", "Groups", "Hannah waddingham",
+        "Helen skeleton", "Holly Willoughby", "Hospital dramas", "Jac jossa",
+        "Jamie lee o'donnell", "Jenna Coleman", "Jenny falconer", "Jill halfpenny",
+        "Jorgie porter", "Josie Gibson", "Kate bottley (rev)", "Kate quilton",
+        "Kate richie", "Katy hill", "Konnie huq"
+    ];
+    
+    // Since we don't have individual file IDs, we'll use a different approach:
+    // We'll try to load images by guessing their filenames (common patterns)
+    // BUT this isn't reliable. The best way is to have you share the actual image links.
+    
+    // For now, I'll provide a working demo using placeholder images
+    // But here's what you need to do to make it work with YOUR actual images:
+    
+    async function loadImagesFromGoogleDrive() {
+        loadingView.innerHTML = "📂 Accessing your Google Drive folder...<br><small>Note: Direct folder listing requires Google Drive API setup.</small><br><br>📸 For now, I'll show you how to get your actual image links:<br><br>1. Open your public folder<br>2. Click on any image<br>3. Right-click → 'Copy image address'<br>4. Paste that link into the array below";
+        
+        // IMPORTANT: To actually fetch images automatically, you need to:
+        // 1. Go to Google Cloud Console
+        // 2. Create a project and enable Drive API
+        // 3. Create an API key
+        // 4. Then uncomment the code below and add your API key
+        
+        /*
+        const API_KEY = "YOUR_API_KEY_HERE";
+        const url = `https://www.googleapis.com/drive/v3/files?q='${FOLDER_ID}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)&pageSize=1000`;
+        
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            // Get all image files from all subfolders recursively
+            const imageFiles = data.files.filter(file => file.mimeType.startsWith('image/'));
+            
+            for (const file of imageFiles) {
+                allImageUrls.push({
+                    url: getDirectImageUrl(file.id),
+                    name: file.name
+                });
+            }
+            
+            // Also need to fetch from subfolders (requires recursive calls)
+            const folders = data.files.filter(file => file.mimeType === 'application/vnd.google-apps.folder');
+            for (const folder of folders) {
+                const subUrl = `https://www.googleapis.com/drive/v3/files?q='${folder.id}'+in+parents&key=${API_KEY}&fields=files(id,name,mimeType)`;
+                const subResponse = await fetch(subUrl);
+                const subData = await subResponse.json();
+                const subImages = subData.files.filter(file => file.mimeType.startsWith('image/'));
+                for (const img of subImages) {
+                    allImageUrls.push({
+                        url: getDirectImageUrl(img.id),
+                        name: `${folder.name}/${img.name}`
+                    });
+                }
+            }
+            
+            if (allImageUrls.length === 0) {
+                throw new Error("No images found");
+            }
+            
+            startGameWithRandomImages();
+            
+        } catch (error) {
+            console.error("Error:", error);
+            loadingView.innerHTML = "⚠️ Couldn't load images automatically.<br><br>📝 <strong>Quick solution:</strong><br>1. Open your Google Drive folder<br>2. Click each image → 'Copy image address'<br>3. I'll show you how to add them to the code.<br><br>Click below to continue with sample images for now →";
+            
+            // Add a button to proceed with demo
+            const btn = document.createElement('button');
+            btn.textContent = "🎮 Try Demo Mode";
+            btn.style.marginTop = "20px";
+            btn.style.padding = "12px 24px";
+            btn.style.borderRadius = "60px";
+            btn.style.border = "none";
+            btn.style.backgroundColor = "#c44569";
+            btn.style.color = "white";
+            btn.style.fontWeight = "600";
+            btn.style.cursor = "pointer";
+            btn.onclick = () => loadSampleImages();
+            loadingView.appendChild(btn);
+        }
+        */
+        
+        // For immediate working game, let's use sample images
+        // You'll replace these with YOUR actual image links
+        loadSampleImages();
+    }
+    
+    function loadSampleImages() {
+        loadingView.innerHTML = "📸 Loading your gallery...";
+        
+        // Generate sample image URLs (replace these with your actual Google Drive image links)
+        // To get your actual image links:
+        // 1. Open drive.google.com
+        // 2. Navigate to one of your subfolders
+        // 3. Click on an image
+        // 4. Right-click the image → "Copy image address"
+        // 5. Paste that link below
+        
+        const sampleImageUrls = [
+            // Paste your actual Google Drive image links here!
+            // Example: "https://drive.google.com/uc?export=view&id=YOUR_FILE_ID"
+            "https://picsum.photos/id/10/400/300",
+            "https://picsum.photos/id/20/400/300", 
+            "https://picsum.photos/id/30/400/300",
+            "https://picsum.photos/id/40/400/300",
+            "https://picsum.photos/id/50/400/300",
+            "https://picsum.photos/id/60/400/300",
+            "https://picsum.photos/id/70/400/300",
+            "https://picsum.photos/id/80/400/300",
+            "https://picsum.photos/id/90/400/300",
+            "https://picsum.photos/id/100/400/300",
+            "https://picsum.photos/id/110/400/300",
+            "https://picsum.photos/id/120/400/300",
+            "https://picsum.photos/id/130/400/300",
+            "https://picsum.photos/id/140/400/300",
+            "https://picsum.photos/id/150/400/300",
+            "https://picsum.photos/id/160/400/300"
+        ];
+        
+        allImageUrls = sampleImageUrls.map((url, index) => ({
+            url: url,
+            name: `Image ${index + 1}`
+        }));
+        
+        startGameWithRandomImages();
+    }
+    
+    function startGameWithRandomImages() {
+        if (allImageUrls.length === 0) {
+            loadingView.innerHTML = "❌ No images found! Please add your image links.";
+            return;
+        }
+        
+        // Shuffle and pick random 12 images
+        const shuffled = [...allImageUrls];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        
+        const selectedImages = shuffled.slice(0, Math.min(12, shuffled.length));
+        
+        currentQuestions = selectedImages.map(img => ({
+            imageUrl: img.url,
+            text: "Do you like this? 💕",
+            name: img.name
+        }));
+        
+        // Hide loading, show game
+        loadingView.style.display = 'none';
+        gameViewDiv.style.display = 'block';
+        
+        currentIndex = 0;
+        answers = [];
+        gameCompleted = false;
+        
+        renderCurrentQuestion();
+    }
+    
+    function renderCurrentQuestion() {
+        if (currentIndex >= currentQuestions.length) {
+            finishGameAndShowResults();
+            return;
+        }
+        
+        const q = currentQuestions[currentIndex];
+        questionTextEl.innerText = q.text;
+        
+        // Show loading
+        questionImageEl.innerHTML = '<div class="loading-overlay">❤️ loading...</div>';
+        
+        const img = document.createElement('img');
+        img.src = q.imageUrl;
+        img.alt = "swipe image";
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "cover";
+        img.style.borderRadius = "32px";
+        
+        img.onload = () => {
+            questionImageEl.innerHTML = '';
+            questionImageEl.appendChild(img);
+        };
+        
+        img.onerror = () => {
+            questionImageEl.innerHTML = '';
+            const errorDiv = document.createElement('div');
+            errorDiv.innerText = "💔 image unavailable";
+            errorDiv.style.display = "flex";
+            errorDiv.style.alignItems = "center";
+            errorDiv.style.justifyContent = "center";
+            errorDiv.style.height = "100%";
+            errorDiv.style.fontSize = "1.2rem";
+            errorDiv.style.color = "#c44569";
+            questionImageEl.appendChild(errorDiv);
+        };
+        
+        progressIndicator.innerText = `image ${currentIndex+1} / ${currentQuestions.length}`;
+    }
+    
+    function recordAnswer(choice) {
+        if (gameCompleted) return;
+        if (currentIndex >= currentQuestions.length) return;
+        
+        answers.push({
+            questionText: `Image ${currentIndex+1}`,
+            choice: choice,
+            imageUrl: currentQuestions[currentIndex].imageUrl
+        });
+        
+        currentIndex++;
+        if (currentIndex < currentQuestions.length) {
+            renderCurrentQuestion();
+        } else {
+            finishGameAndShowResults();
+        }
+    }
+    
+    function finishGameAndShowResults() {
+        gameCompleted = true;
+        const payload = {
+            timestamp: Date.now(),
+            answers: answers,
+            totalQuestions: currentQuestions.length
+        };
+        const dataStr = JSON.stringify(payload);
+        const sessionId = btoa(encodeURIComponent(dataStr)).slice(0, 64);
+        const storageKey = `swipegame_${sessionId}`;
+        localStorage.setItem(storageKey, dataStr);
+        
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('view', sessionId);
+        const shareableLink = currentUrl.toString();
+        
+        gameViewDiv.style.display = 'none';
+        resultsViewDiv.style.display = 'block';
+        
+        renderAnswersSummary(answers);
+        shareLinkInput.value = shareableLink;
+    }
+    
+    function renderAnswersSummary(answerArray) {
+        if (!answerArray || answerArray.length === 0) {
+            answersSummaryDiv.innerHTML = '<div style="text-align:center">✨ no answers yet ✨</div>';
+            return;
+        }
+        let html = '';
+        for (let i = 0; i < answerArray.length; i++) {
+            const ans = answerArray[i];
+            const choiceText = ans.choice === 'yes' ? '✅ YES' : '❌ NO';
+            const badgeClass = ans.choice === 'yes' ? 'badge-yes' : 'badge-no';
+            html += `
+                <div class="answer-item">
+                    <span style="flex:1; font-weight:500;">${ans.questionText}</span>
+                    <span class="${badgeClass}">${choiceText}</span>
+                </div>
+            `;
+        }
+        answersSummaryDiv.innerHTML = html;
+    }
+    
+    function resetGame() {
+        if (currentQuestions.length === 0) {
+            location.reload();
+            return;
+        }
+        
+        currentIndex = 0;
+        answers = [];
+        gameCompleted = false;
+        resultsViewDiv.style.display = 'none';
+        gameViewDiv.style.display = 'block';
+        renderCurrentQuestion();
+    }
+    
+    function newRandomGame() {
+        startGameWithRandomImages();
+        resultsViewDiv.style.display = 'none';
+        gameViewDiv.style.display = 'block';
+    }
+    
+    function loadSharedResultsIfPresent() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('view');
+        if (!sessionId) return false;
+        
+        const storageKey = `swipegame_${sessionId}`;
+        const storedData = localStorage.getItem(storageKey);
+        if (!storedData) return false;
+        
+        try {
+            const parsed = JSON.parse(storedData);
+            if (parsed.answers && Array.isArray(parsed.answers)) {
+                loadingView.style.display = 'none';
+                gameViewDiv.style.display = 'none';
+                resultsViewDiv.style.display = 'block';
+                renderAnswersSummary(parsed.answers);
+                const currentCleanUrl = new URL(window.location.href);
+                currentCleanUrl.searchParams.set('view', sessionId);
+                shareLinkInput.value = currentCleanUrl.toString();
+                return true;
+            }
+        } catch(e) {
+            console.warn("failed to parse shared data");
+        }
+        return false;
+    }
+    
+    function copyShareLink() {
+        const link = shareLinkInput.value;
+        if (!link) return;
+        navigator.clipboard.writeText(link).then(() => {
+            const originalText = copyLinkBtn.innerText;
+            copyLinkBtn.innerText = '✅ Copied!';
+            setTimeout(() => {
+                copyLinkBtn.innerText = originalText;
+            }, 1500);
+        }).catch(() => {
+            alert('Press Ctrl+C to copy the link');
+        });
+    }
+    
+    // Event listeners
+    swipeLeftBtn.addEventListener('click', () => {
+        if (!gameCompleted && currentIndex < currentQuestions.length) {
+            recordAnswer('no');
+        }
+    });
+    
+    swipeRightBtn.addEventListener('click', () => {
+        if (!gameCompleted && currentIndex < currentQuestions.length) {
+            recordAnswer('yes');
+        }
+    });
+    
+    // Touch swipe support
+    const cardArea = document.querySelector('.card-area');
+    let touchStartX = 0;
+    let touchEndX = 0;
+    if (cardArea) {
+        cardArea.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+        cardArea.addEventListener('touchend', (e) => {
+            if (gameCompleted || currentIndex >= currentQuestions.length) return;
+            touchEndX = e.changedTouches[0].screenX;
+            const diff = touchEndX - touchStartX;
+            if (Math.abs(diff) > 40) {
+                if (diff > 0) {
+                    recordAnswer('yes');
+                } else {
+                    recordAnswer('no');
+                }
+            }
+        });
+    }
+    
+    resetGameBtn.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('view')) {
+            url.searchParams.delete('view');
+            window.history.replaceState({}, '', url.toString());
+        }
+        resetGame();
+    });
+    
+    newGameBtn.addEventListener('click', () => {
+        const url = new URL(window.location.href);
+        if (url.searchParams.has('view')) {
+            url.searchParams.delete('view');
+            window.history.replaceState({}, '', url.toString());
+        }
+        newRandomGame();
+    });
+    
+    copyLinkBtn.addEventListener('click', copyShareLink);
+    
+    // Initialize
+    const hasShared = loadSharedResultsIfPresent();
+    if (!hasShared) {
+        loadImagesFromGoogleDrive();
+    }
+</script>
+</body>
+</html>
